@@ -3,6 +3,7 @@
 
 <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Predator-Prey Simulation w/ Grass</title>
     <style>
         body {
@@ -16,7 +17,6 @@
             position: absolute;
             top: 20px;
             left: 20px;
-            padding: 20px;
             background: rgba(0, 0, 0, 0.8);
             border-radius: 15px;
             border: 2px solid #4CAF50;
@@ -24,26 +24,89 @@
             z-index: 9999;
             box-shadow: 0 0 20px rgba(76, 175, 80, 0.3);
             transition: transform 0.3s ease;
+            width: 320px;
+            display: flex;
+            flex-direction: column;
         }
         
-        #ui.collapsed {
-            transform: translateX(-95%);
+        .ui-content {
+            padding: 20px;
+            max-height: 80vh;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: #4CAF50 rgba(0, 0, 0, 0.2);
+        }
+        
+        .ui-content::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .ui-content::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 4px;
+        }
+        
+        .ui-content::-webkit-scrollbar-thumb {
+            background-color: #4CAF50;
+            border-radius: 4px;
+        }
+        
+        @media (max-width: 768px) {
+            #ui {
+                top: auto;
+                bottom: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 85vw;
+            }
+            .ui-content {
+                padding: 15px;
+                font-size: 14px;
+            }
+            #ui.collapsed {
+                transform: translateY(calc(100% - 35px)) translateX(-50%);
+            }
+            #collapseBtn {
+                position: absolute;
+                top: 0;
+                left: 50%;
+                transform: translateX(-50%) rotate(180deg);
+                border-radius: 8px 8px 0 0;
+                width: 60px;
+                height: 30px;
+            }
+            #ui.collapsed #collapseBtn {
+                transform: translateX(50%) rotate(0deg);
+            }
+        }
+        
+        @media (min-width: 769px) {
+            #ui.collapsed {
+                transform: translateX(calc(-100% + 35px));
+            }
+            #collapseBtn {
+                position: absolute;
+                right: -30px;
+                top: 50%;
+                transform: translateY(-50%) rotate(0deg);
+                border-radius: 0 8px 8px 0;
+                width: 30px;
+                height: 60px;
+            }
+            #ui.collapsed #collapseBtn {
+                transform: translateY(-50%) rotate(180deg);
+            }
         }
         
         #collapseBtn {
             position: absolute;
-            right: -30px;
-            top: 50%;
-            transform: translateY(-50%);
             background: #4CAF50;
             border: none;
             color: white;
-            width: 30px;
-            height: 60px;
-            border-radius: 0 8px 8px 0;
             cursor: pointer;
             font-size: 20px;
-            transition: background 0.3s ease;
+            transition: all 0.3s ease;
+            z-index: 10000;
         }
         
         #collapseBtn:hover {
@@ -104,11 +167,13 @@
             text-align: center;
             color: white;
             z-index: 10000;
+            width: 90vw;
+            max-width: 600px;
         }
         
         #startBtn {
             padding: 15px 40px;
-            font-size: 24px;
+            font-size: clamp(18px, 5vw, 24px);
             background: #4CAF50;
             border: none;
             border-radius: 50px;
@@ -118,6 +183,7 @@
             margin-top: 20px;
             text-transform: uppercase;
             letter-spacing: 2px;
+            width: min(80%, 300px);
         }
         
         #startBtn:hover {
@@ -135,12 +201,12 @@
             text-align: center;
             color: white;
             z-index: 10000;
-            font-size: 48px;
-            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+            width: 90vw;
+            max-width: 600px;
         }
         
         .title {
-            font-size: 36px;
+            font-size: clamp(24px, 8vw, 36px);
             color: #4CAF50;
             margin-bottom: 20px;
             text-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
@@ -158,7 +224,8 @@
             padding: 20px;
             color: white;
             z-index: 10001;
-            min-width: 300px;
+            width: 90vw;
+            max-width: 400px;
             box-shadow: 0 0 20px rgba(76, 175, 80, 0.5);
         }
         
@@ -166,7 +233,7 @@
             color: #4CAF50;
             text-align: center;
             margin-bottom: 20px;
-            font-size: 24px;
+            font-size: clamp(18px, 5vw, 24px);
         }
         
         .stat-row {
@@ -176,6 +243,7 @@
             padding: 8px;
             background: rgba(255, 255, 255, 0.1);
             border-radius: 5px;
+            font-size: clamp(12px, 4vw, 14px);
         }
         
         .stat-label {
@@ -192,6 +260,7 @@
             gap: 10px;
             margin-top: 20px;
             justify-content: center;
+            flex-wrap: wrap;
         }
         
         .game-over-button {
@@ -202,15 +271,41 @@
             color: white;
             cursor: pointer;
             transition: all 0.3s ease;
-            font-size: 16px;
+            font-size: clamp(14px, 4vw, 16px);
             text-transform: uppercase;
             letter-spacing: 1px;
+            min-width: 120px;
         }
         
         .game-over-button:hover {
             transform: scale(1.05);
             background: #45a049;
             box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+        }
+        
+        @media (max-height: 600px) {
+            #ui {
+                max-height: 60vh;
+            }
+        }
+        
+        @media (orientation: landscape) and (max-height: 500px) {
+            #ui {
+                top: 10px;
+                max-height: 80vh;
+                font-size: 12px;
+            }
+            .config-group {
+                margin-bottom: 5px;
+                padding: 5px;
+            }
+            .config-group label {
+                width: 180px;
+                font-size: 12px;
+            }
+            #updateBtn {
+                padding: 5px;
+            }
         }
     </style>
 </head>
@@ -328,13 +423,22 @@
                 0.1,
                 1000
             );
-            camera.position.set(0, 100, 200);
+
+            // Adjust camera position based on screen size
+            const isMobile = window.innerWidth <= 768;
+            if (isMobile) {
+                camera.position.set(0, 150, 300); // Move camera further back on mobile
+            } else {
+                camera.position.set(0, 100, 200);
+            }
             camera.lookAt(0, 0, 0);
 
-            // Set up renderer
+            // Set up renderer with pixel ratio for better mobile display
             renderer = new THREE.WebGLRenderer({
-                antialias: true
+                antialias: true,
+                powerPreference: "high-performance"
             });
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Limit pixel ratio for performance
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.shadowMap.enabled = true;
             document.body.appendChild(renderer.domElement);
@@ -368,6 +472,15 @@
         }
 
         function onWindowResize() {
+            const isMobile = window.innerWidth <= 768;
+
+            // Update camera position based on screen size
+            if (isMobile) {
+                camera.position.set(0, 150, 300);
+            } else {
+                camera.position.set(0, 100, 200);
+            }
+
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
@@ -668,22 +781,28 @@
             const delta = clock.getDelta();
             const currentTime = performance.now();
 
-            // Update statistics
-            maxPredatorCount = Math.max(maxPredatorCount, predatorArray.length);
-            maxPreyCount = Math.max(maxPreyCount, preyArray.length);
+            // Throttle updates on mobile devices
+            const isMobile = window.innerWidth <= 768;
+            const shouldUpdate = !isMobile || (isMobile && delta < 0.1); // Skip frames if too slow on mobile
 
-            updateGrass(currentTime);
-            updatePrey(delta, currentTime);
-            updatePredators(delta, currentTime);
+            if (shouldUpdate) {
+                // Update statistics
+                maxPredatorCount = Math.max(maxPredatorCount, predatorArray.length);
+                maxPreyCount = Math.max(maxPreyCount, preyArray.length);
 
-            // Check win conditions
-            if (preyArray.length === 0) {
-                showGameOver('Predators');
-            } else if (predatorArray.length === 0) {
-                showGameOver('Prey');
+                updateGrass(currentTime);
+                updatePrey(delta, currentTime);
+                updatePredators(delta, currentTime);
+
+                // Check win conditions
+                if (preyArray.length === 0) {
+                    showGameOver('Predators');
+                } else if (predatorArray.length === 0) {
+                    showGameOver('Prey');
+                }
+
+                renderer.render(scene, camera);
             }
-
-            renderer.render(scene, camera);
         }
 
         /***************************************************************
@@ -1110,12 +1229,90 @@
             animate();
         }
 
-        // Add after other event listeners
-        document.getElementById('collapseBtn').addEventListener('click', function() {
+        // Add touch event handlers for UI
+        document.addEventListener('DOMContentLoaded', function() {
             const ui = document.getElementById('ui');
-            const btn = document.getElementById('collapseBtn');
-            ui.classList.toggle('collapsed');
-            btn.textContent = ui.classList.contains('collapsed') ? '‹' : '›';
+            const collapseBtn = document.getElementById('collapseBtn');
+            let touchStartY = 0;
+            let touchStartX = 0;
+
+            // Set initial button text based on device
+            function updateCollapseButtonText() {
+                const isMobile = window.innerWidth <= 768;
+                collapseBtn.textContent = isMobile ? '▼' : '›';
+                if (ui.classList.contains('collapsed')) {
+                    collapseBtn.textContent = isMobile ? '▲' : '‹';
+                }
+            }
+
+            // Update button text on window resize
+            window.addEventListener('resize', updateCollapseButtonText);
+
+            // Initial button text setup
+            updateCollapseButtonText();
+
+            // Prevent default touch behavior to avoid scrolling
+            ui.addEventListener('touchmove', function(e) {
+                e.preventDefault();
+            }, {
+                passive: false
+            });
+
+            ui.addEventListener('touchstart', function(e) {
+                touchStartY = e.touches[0].clientY;
+                touchStartX = e.touches[0].clientX;
+            }, {
+                passive: true
+            });
+
+            ui.addEventListener('touchend', function(e) {
+                const touchEndY = e.changedTouches[0].clientY;
+                const touchEndX = e.changedTouches[0].clientX;
+                const deltaY = touchEndY - touchStartY;
+                const deltaX = touchEndX - touchStartX;
+
+                // Check if it's a mobile device
+                const isMobile = window.innerWidth <= 768;
+
+                if (isMobile) {
+                    // Vertical swipe for mobile
+                    if (Math.abs(deltaY) > 50) {
+                        ui.classList.toggle('collapsed', deltaY < 0);
+                        collapseBtn.textContent = ui.classList.contains('collapsed') ? '▲' : '▼';
+                    }
+                } else {
+                    // Horizontal swipe for desktop
+                    if (Math.abs(deltaX) > 50) {
+                        ui.classList.toggle('collapsed', deltaX < 0);
+                        collapseBtn.textContent = ui.classList.contains('collapsed') ? '‹' : '›';
+                    }
+                }
+            }, {
+                passive: true
+            });
+
+            // Add click handler for collapse button
+            collapseBtn.addEventListener('click', function() {
+                const isMobile = window.innerWidth <= 768;
+                ui.classList.toggle('collapsed');
+                if (isMobile) {
+                    this.textContent = ui.classList.contains('collapsed') ? '▲' : '▼';
+                } else {
+                    this.textContent = ui.classList.contains('collapsed') ? '‹' : '›';
+                }
+            });
+
+            // Add touch feedback to buttons
+            const buttons = document.querySelectorAll('button');
+            buttons.forEach(button => {
+                button.addEventListener('touchstart', function() {
+                    this.style.transform = 'scale(0.95)';
+                });
+
+                button.addEventListener('touchend', function() {
+                    this.style.transform = '';
+                });
+            });
         });
     </script>
 </body>
